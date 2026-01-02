@@ -1,6 +1,8 @@
 <?php
 namespace Middleware\Framework\Rest;
 
+use Middleware\Framework\Filters\RateLimiter;
+use Middleware\Framework\Filters\RequestValidator;
 use Yii;
 use yii\filters\Cors;
 use yii\filters\auth\HttpBearerAuth;
@@ -14,19 +16,9 @@ use yii\rest\Controller as BaseController;
  */
 class Controller extends BaseController
 {
-    /**
-     * @var bool Enable authentication
-     */
     public bool $enableAuth = false;
-
-    /**
-     * @var array Actions that don't require authentication
-     */
     public array $optionalAuth = [];
 
-    /**
-     * @inheritdoc
-     */
     public function behaviors(): array
     {
         $behaviors = parent::behaviors();
@@ -42,7 +34,12 @@ class Controller extends BaseController
             ],
         ];
 
-        // Content Negotiator
+        $behaviors['rateLimiter'] = [
+            'class' => RateLimiter::class,
+            'maxRequests' => 100,
+            'window' => 60,
+        ];
+
         $behaviors['contentNegotiator'] = [
             'class' => ContentNegotiator::class,
             'formats' => [
@@ -50,7 +47,10 @@ class Controller extends BaseController
             ],
         ];
 
-        // Authentication
+        $behaviors['requestValidator'] = [
+            'class' => RequestValidator::class,
+        ];
+
         if ($this->enableAuth) {
             $behaviors['authenticator'] = [
                 'class' => HttpBearerAuth::class,
@@ -58,7 +58,6 @@ class Controller extends BaseController
             ];
         }
 
-        // Verb Filter
         $behaviors['verbFilter'] = [
             'class' => VerbFilter::class,
             'actions' => $this->verbs(),
@@ -67,11 +66,6 @@ class Controller extends BaseController
         return $behaviors;
     }
 
-    /**
-     * Get allowed origins for CORS
-     *
-     * @return array
-     */
     protected function getAllowedOrigins(): array
     {
         if (YII_ENV_PROD) {
@@ -80,19 +74,11 @@ class Controller extends BaseController
         return ['*'];
     }
 
-    /**
-     * Define allowed HTTP verbs for actions
-     *
-     * @return array
-     */
     protected function verbs(): array
     {
         return [];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function afterAction($action, $result)
     {
         $result = parent::afterAction($action, $result);
@@ -107,5 +93,16 @@ class Controller extends BaseController
         }
 
         return $result;
+    }
+
+    protected function getQueryParams(): array
+    {
+        $request = Yii::$app->request;
+        return [
+            'page' => (int) $request->get('page', 1),
+            'per_page' => min((int) $request->get('per_page', 20), 100),
+            'sort' => $request->get('sort', '-id'),
+            'filter' => $request->get('filter', []),
+        ];
     }
 }
