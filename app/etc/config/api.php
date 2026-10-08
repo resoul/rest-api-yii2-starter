@@ -12,6 +12,8 @@ use yii\web\UrlManager;
 $env = require(ENV_PATH);
 $config = require(COMMON_CONFIG_PATH);
 
+$config['controllerNamespace'] = 'Middleware\\Framework\\Controllers';
+
 $config['components']['request'] = [
     'baseUrl' => '',
     'cookieValidationKey' => $env['cookie.validation.key'],

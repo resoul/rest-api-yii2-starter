@@ -11,6 +11,7 @@ $config = require(COMMON_CONFIG_PATH);
 
 $config['controllerMap']['migrate'] = [
     'class' => MigrateController::class,
+    'migrationPath' => ROOT_PATH . '/app/migrations',
     'migrationNamespaces' => [
         'Middleware\Framework\Queue\Migration'
     ]

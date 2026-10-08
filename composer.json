@@ -41,14 +41,6 @@
       "Middleware\\": "app/code/Middleware/"
     }
   },
-  "scripts": {
-    "post-install-cmd": [
-      "php bin/middleware migrate --interactive=0"
-    ],
-    "post-update-cmd": [
-      "php bin/middleware migrate --interactive=0"
-    ]
-  },
   "config": {
     "platform": {
       "php": "8.4"

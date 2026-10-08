@@ -20,12 +20,29 @@ cp app/etc/env.test.php app/etc/env.php
 # Edit environment variables
 nano app/etc/env.php
 
-# Run migrations
-php bin/middleware migrate
+# Apply application and queue migrations
+php bin/middleware migrate --interactive=0
 
 # Start queue worker
 php bin/middleware queue/listen
 ```
+
+## Database migrations
+
+Application migrations live in `app/migrations`. The starter includes an
+example migration that creates an `example_record` table; replace or remove it
+when adapting the project. Queue migrations remain in
+`app/code/Middleware/Framework/Queue/Migration` and are discovered through
+their migration namespace.
+
+Create a migration with:
+
+```bash
+php bin/middleware migrate/create add_example_field
+```
+
+Apply pending migrations with `php bin/middleware migrate` and roll back the
+last migration with `php bin/middleware migrate/down`.
 
 ## Configuration
 
